@@ -1,0 +1,520 @@
+
+<html>
+	<head>
+		<title>Etiqa</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+		<script src="http://momentjs.com/downloads/moment.js"></script>
+
+		<!-- Bootstrap 3 -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+		<style>
+			* { margin: 0; padding: 0; box-sizing: border-box; }
+			body { font: 13px Helvetica, Arial; }
+			form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+			form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+			form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+			#messages { list-style-type: none; margin: 0; padding: 0; }
+			#messages li { padding: 5px 10px; }
+			#messages li:nth-child(odd) { background: #eee; }
+			#messages { margin-bottom: 40px }
+
+			.panel {
+				margin-bottom: 20px;
+				background-color: #fff;
+				border: 1px solid transparent;
+				border-radius: 4px;
+				-webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05);
+				box-shadow: 0 1px 1px rgba(0,0,0,.05);
+			}
+			.product-list img{
+			    width: 100%;
+			    border-radius: 4px 4px 0 0;
+			    -webkit-border-radius: 4px 4px 0 0;
+			}
+
+			.product-list .pro-img-box {
+			    position: relative;
+			}
+			.adtocart {
+				background: #fc5959;
+				width: 50px;
+				height: 50px;
+				border-radius: 50%;
+				-webkit-border-radius: 50%;
+				color: #fff;
+				display: inline-block;
+				text-align: center;
+				border: 3px solid #fff;
+				left: 45%;
+				bottom: -25px;
+				position: absolute;
+			}
+			.panel-body {
+				padding: 15px;
+			}
+			.pro-title {
+				color: #5A5A5A;
+				display: inline-block;
+				margin-top: 20px;
+				font-size: 16px;
+			}
+	</style>
+
+	</head>
+
+	<script>
+	angular.module("app",[])
+	.provider("api", function () {
+		this.$get = ["$http", function ($http) {
+			var that = this;
+			var defaultResponseReject = function (resp) {
+				return resp.data;
+			}
+			return {
+				getUser: function (params,data) {
+					return $http({
+						method: 'get',
+						url: '//localhost:2043/api/user/get',
+						params: params,
+						data : data
+					})
+					.then(defaultResponseReject, defaultResponseReject);
+				},
+				updateUserDetails: function ( data) {
+					return $http({
+						method: 'put',
+						url: '//localhost:2043/api/user/update',
+						data : data
+					})
+					.then(defaultResponseReject, defaultResponseReject);
+				},
+				deleteUserDetails: function ( data) {
+					return $http({
+						headers: { 'Content-Type': 'application/json' },
+						method : 'delete',
+						url    : '//localhost:2043/api/user/delete',
+						data   : data
+					})
+					.then(defaultResponseReject, defaultResponseReject);
+				},
+				createUserDetails: function ( data) {
+					return $http({
+						headers: { 'Content-Type': 'application/json' },
+						method : 'post',
+						url    : '//localhost:2043/api/user/register',
+						data   : data
+					})
+					.then(defaultResponseReject, defaultResponseReject);
+				},
+			};
+		}];
+	})
+	.controller("AppController", ["$scope","$timeout","$window","$interval" ,"api", function ($scope,$timeout,$window,$interval,api) {
+		$scope.master_id     = null;
+		$scope.schedual_id   = null;
+		$scope.show          = "userlist";
+		$scope.total_price   = 0;
+		$scope.checkbox      = {};
+		$scope.list          = {};
+		$scope.model         = {};
+
+		$scope.getUser = function(){
+			var params ={
+			}
+			api.getUser(params)
+			.then(function(resp){
+				if(resp.errorMessage)
+					return console.log(resp.errorMessage)
+
+				$scope.user = resp.data;
+				// console.log(resp.data)
+
+			});
+		}
+
+		$scope.init = function(){
+			$scope.show          = "userlist";
+			$scope.getUser();
+		}
+
+		$scope.getUserDetails = function(i){
+			$scope.show          = "userDetails";
+			var params ={
+				id : i.id
+			}
+			api.getUser(params)
+			.then(function(resp){
+				if(resp.errorMessage)
+					return console.log(resp.errorMessage)
+
+				$scope.userDetails = resp.data[0];
+				$scope.model       = resp.data[0];
+
+			});
+		}
+
+		$scope.updateUserDetails = function(i){
+			api.updateUserDetails($scope.model)
+			.then(function(resp){
+				if(resp.errorMessage)
+					return alert(resp.errorMessage)
+
+				alert("Update Success");
+				$scope.userDetails = resp.data;
+				$scope.model       = resp.data;
+			});
+		}
+
+		$scope.deleteUserDetails = function(i){
+			var r = confirm("Are you sure you want to delete it ?");
+			if (r == false) return;
+			// return console.log($scope.model)
+			var data = {
+				id : $scope.model.id
+			}
+
+			api.deleteUserDetails(data)
+			.then(function(resp){
+				if(resp.errorMessage)
+					return alert(resp.errorMessage.message)
+
+				alert("Delete Success");
+				$scope.init();
+			});
+		}
+
+		$scope.createUserDetails = function(i){
+			api.createUserDetails($scope.model)
+			.then(function(resp){
+				if(resp.errorMessage)
+					return alert(resp.errorMessage.message)
+
+				alert("Register Success");
+				$scope.init();
+			});
+		}
+
+		$scope.goto = function(o){
+			$scope.show = o;
+			if(o=="userlist"){
+				$scope.getUser();
+			}else if (o=='register'){
+				$scope.model= {
+					skillsets : [] ,
+					hobby    : [] ,
+				}
+			}
+		}
+
+		$scope.removeSkill = function(item){
+			var index = $scope.model.skillsets.indexOf(item);
+			$scope.model.skillsets.splice(index, 1);
+		}
+
+		$scope.addSkill = function(){
+			var index = $scope.model.skillsets.indexOf($scope.model.skill);
+			if(index==-1){
+				$scope.model.skillsets.push($scope.model.skill);
+				$scope.model.skill='';
+			}
+		}
+
+		$scope.removeHobby = function(item){
+			var index = $scope.model.hobby.indexOf(item);
+			$scope.model.hobby.splice(index, 1);
+		}
+
+		$scope.addHobby = function(){
+			// console.log($scope.model.hobbysingle)
+			var index = $scope.model.hobby.indexOf($scope.model.hobbysingle);
+			// console.log(index)
+			if(index==-1){
+				$scope.model.hobby.push($scope.model.hobbysingle);
+				$scope.model.hobbysingle='';
+			}
+		}
+
+		$scope.vdisable = function(o){
+			return $scope.master_id!=null && $scope.total_price!=0 && $scope.list != [] && $scope.schedual_id!=null;
+		}
+
+		$scope.$watch(function(){
+			var item = [];
+			var list = [];
+			var amt  = [];
+			angular.forEach($scope.checkbox, function(v, id) {
+				if(v==1)
+					item.push(id);
+			});
+
+			angular.forEach($scope.checkbox, function(v, id) {
+				if(v==1){
+					item.push(id);
+					angular.forEach($scope.services, function(o) {
+						if (o.service_id == id) {
+							list.push({
+								service_id : o.service_id,
+								price      : o.price,
+							});
+							amt.push(o.price*1);
+						}
+					});
+				}
+			});
+
+			var sum = amt.reduce(function(a, b){
+				return a + b;
+			}, 0);
+			$scope.total_price = sum;
+			$scope.list        = list;
+		}, function(){
+			var item = [];
+			var list = [];
+			var amt  = [];
+			angular.forEach($scope.checkbox, function(v, id) {
+				if(v==1)
+					item.push(id);
+			});
+
+			angular.forEach($scope.checkbox, function(v, id) {
+				if(v==1){
+					item.push(id);
+					angular.forEach($scope.services, function(o) {
+						if (o.service_id == id) {
+							list.push({
+								service_id : o.service_id,
+								price      : o.price,
+							});
+							amt.push(o.price*1);
+						}
+					});
+				}
+			});
+
+			var sum = amt.reduce(function(a, b){
+				return a + b;
+			}, 0);
+			$scope.total_price = sum;
+			$scope.list        = list;
+			// console.log(list)
+			// console.log(item)
+		},true)
+
+	}]);
+</script>
+
+	<body ng-app="app" ng-controller="AppController" ng-init="init()" class="container">
+
+		<div class="col-12">
+			<h1>
+				<span ng-if="show=='userlist' ">User list</span>
+				<span ng-if="show=='register' ">Register</span>
+				<span ng-if="show=='userDetails' ">User Details</span>
+				<button ng-click="goto('userlist')" class="btn btn-sm" ng-class="{'btn-info':show == 'userlist'}">Main</button>
+				<button ng-click="goto('register')" class="btn btn-sm " ng-class="{'btn-info': show == 'register'}">Register</button>
+			</h1>
+
+			<hr/>
+
+
+			<table class="table" ng-if="show=='userlist' ">
+				<tr>
+					<th>Name</th>
+					<th>Username</th>
+					<th>Email</th>
+					<th>Phone Number</th>
+					<th></th>
+				</tr>
+				<tr ng-repeat="(k,i) in user">
+					<td>{{i.name}}</td>
+					<td>{{i.username}}</td>
+					<td>{{i.email}}</td>
+					<td>{{i.phone_number}}</td>
+					<td>
+						<button ng-click="getUserDetails(i)" class="btn btn-sm btn-default">more</button>
+					</td>
+				</tr>
+			</table>
+
+			<br/>
+			<div ng-show="show=='userDetails' ">
+					<div class="row">
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Name:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control" ng-model="model.name">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Username:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control" ng-model="model.username" ng-disabled="true">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Phone Number:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control" ng-model="model.phone_number">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Email address:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control"ng-model="model.email">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Skill Sets:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control"ng-model="model.skill">
+								<div ng-repeat="(k,i) in model.skillsets">
+
+									<div class="input-group col-md-3" style="margin-top:10px">
+										<input class="form-control" value="{{i}}"  ng-disabled="true">
+										<span class="input-group-addon"  ng-click="removeSkill(i)">
+											x
+										</span>
+									</div>
+								</div>
+
+							</div>
+							<div class="col-md-3">
+								<button ng-click="addSkill()" class="btn btn-sm btn-primary" >Add</button>
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Hobby:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control"ng-model="model.hobbysingle">
+								<div ng-repeat="(k,i) in model.hobby">
+
+									<div class="input-group col-md-3" style="margin-top:10px">
+										<input class="form-control" value="{{i}}"  ng-disabled="true">
+										<span class="input-group-addon"  ng-click="removeHobby(i)">
+											x
+										</span>
+									</div>
+								</div>
+
+							</div>
+							<div class="col-md-3">
+								<button ng-click="addHobby()" class="btn btn-sm btn-primary" >Add</button>
+							</div>
+						</div>
+						<button ng-click="deleteUserDetails()" class="btn btn-sm btn-danger" style="position: fixed;bottom: 50;right:200" >Delete</button>
+						<button ng-click="updateUserDetails()" class="btn btn-sm btn-primary" style="position: fixed;bottom: 50;" >Update</button>
+					</div>
+			</div>
+
+			<div ng-show="show=='register' ">
+					<div class="row">
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Name:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control" ng-model="model.name">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Username:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control" ng-model="model.username">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Phone Number:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control" ng-model="model.phone_number">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Email address:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control"ng-model="model.email">
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Skill Sets:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control"ng-model="model.skill">
+								<div ng-repeat="(k,i) in model.skillsets">
+
+									<div class="input-group col-md-3" style="margin-top:10px">
+										<input class="form-control" value="{{i}}"  ng-disabled="true">
+										<span class="input-group-addon"  ng-click="removeSkill(i)">
+											x
+										</span>
+									</div>
+								</div>
+
+							</div>
+							<div class="col-md-3">
+								<button ng-click="addSkill()" class="btn btn-sm btn-primary" >Add</button>
+							</div>
+						</div>
+
+						<div class="form-group col-md-12">
+							<div class="col-md-3">
+								<label >Hobby:</label>
+							</div>
+							<div class="col-md-6">
+								<input class="form-control"ng-model="model.hobbysingle">
+								<div ng-repeat="(k,i) in model.hobby">
+
+									<div class="input-group col-md-3" style="margin-top:10px">
+										<input class="form-control" value="{{i}}"  ng-disabled="true">
+										<span class="input-group-addon"  ng-click="removeHobby(i)">
+											x
+										</span>
+									</div>
+								</div>
+
+							</div>
+							<div class="col-md-3">
+								<button ng-click="addHobby()" class="btn btn-sm btn-primary" >Add</button>
+							</div>
+						</div>
+						<button ng-click="createUserDetails()" class="btn btn-sm btn-primary" style="position: fixed;bottom: 50;" >Register</button>
+					</div>
+			</div>
+
+
+
+
+		</div>
+	</body>
+</html>
