@@ -1,5 +1,5 @@
 {
-  "name": "instahome",
+  "name": "etiqa",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tnqian/instahome.git"
+    "url": "git+https://github.com/tnqian/etiqa.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/tnqian/instahome/issues"
+    "url": "https://github.com/tnqian/etiqa/issues"
   },
-  "homepage": "https://github.com/tnqian/instahome#readme",
+  "homepage": "https://github.com/tnqian/etiqa#readme",
   "dependencies": {
     "aws-sdk": "^2.757.0",
     "commander": "^6.1.0",
